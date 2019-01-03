@@ -1,6 +1,8 @@
 package Flappy_Bird;
 
+import java.util.Random;
+
 public interface variables {
-    int poles = 3;
+    Random random_number = new Random();
     int screen_width = 600, screen_height = 600;
 }

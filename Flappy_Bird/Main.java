@@ -8,7 +8,7 @@ public class Main  implements variables {
     private static JFrame frame = new JFrame();
 
     // Game Frame
-    private static Game game = new Game(poles, 10);
+    private static Game game = new Game();
 
     public static void main(String[] args) {
 

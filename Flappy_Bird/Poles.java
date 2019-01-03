@@ -1,15 +1,19 @@
 package Flappy_Bird;
 
+import java.util.SplittableRandom;
+
 public class Poles implements variables {
     public int[][] map;
+    public int[] heights;
+    private int random_result;
 
-    Poles(int up, int down)
-    {
-        map = new int[up][down];
-        for (int x = 0; x < map.length; x++) {
-            for (int y = 0; y < map[0].length; y++) {
-                map[x][y] = 1;
-            }
+    Poles( int heights_of_upside) {
+        heights = new int[heights_of_upside];
+        for (int height = 0; height < heights.length; height++) {
+            random_result = new SplittableRandom().nextInt(100, 300);
+            heights[height] = random_result;
         }
     }
+
 }
+
