@@ -13,7 +13,7 @@ public class Poles implements variables {
     Poles( long number_of_elements ) {
         elements = new ArrayList<>();
         for (int height = 0; height < number_of_elements; height++) {
-            random_result = new SplittableRandom().nextInt((screen_height/3), (screen_height/2)-10);
+            random_result = new SplittableRandom().nextInt((screen_height/3), (screen_height/2)-30);
             elements.add(random_result);
         }
     }
