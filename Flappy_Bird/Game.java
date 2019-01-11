@@ -1,152 +1,240 @@
 package Flappy_Bird;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Random;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
-public class Game extends JPanel implements variables , ActionListener{
-    private Poles Pole;
-    private int speedX = 10, speedY, playerX, playerY, player_Width, player_Height;
-    private int pole_width = 10;
-    private  static int level = 1;
+
+public class Game extends JComponent implements variables , ActionListener, MouseListener {
+
+
+    private static int pole_width = 30;
+    private static long number_of_poles = 9999L;
+
+    private int playerY = (screen_height/2)-20;
+    private int bkX = 0;
+    private int bkX2 = screen_width;
+    private int score = 0;
+    private static double gravity = 0.01, gravitySpeed = 0;
+
+    private Rectangle bird;
     private Timer timer;
-
-
-    private int  moving_x = screen_width;
-    private int random_position_upside , rand_up_height;
+    private Poles Pole;
+    private int  moving_x_of_poles = screen_width,  random_position_for_placing_downside ,  random_position_for_placing_upside;
     private boolean doesWon = false;
-    public  static  int dynamic_poles = 2;
-    int number_of_poles_for_Height = dynamic_poles;
-
-    // For intersection between player position
-    private Rectangle upSidePoles, downSidePoles;
+    private static int level = 1;
+    private BufferedImage bk = null , bk2 = null;
 
 
+    Game(){
+        int delay = 15;
 
-    public Game(){
-        int delay = 50;
+        Pole = new Poles(number_of_poles);
 
-        dynamic_poles += 10;
-        Pole = new Poles(number_of_poles_for_Height);
+        random_position_for_placing_downside = screen_width/4 + pole_width;
+        random_position_for_placing_upside = screen_width/4 - pole_width;
 
-        random_position_upside = random_number.nextInt(150);
+
         timer = new Timer(delay, this);
-
+        this.addMouseListener(this);
 
         timer.start();
+        try {
+            bk = ImageIO.read(new File("src\\Flappy_Bird\\bk.png"));
+            bk2 = ImageIO.read(new File("src\\Flappy_Bird\\bk2.png"));
 
-    }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        }
 
     public void paint(Graphics g){
-
-        if(random_position_upside < 90){
-            random_position_upside = random_number.nextInt(200);
-        }
+        score += 1/0.9;
         // Draw the screen
-        g.setColor(Color.black);
 
-        // Coloring the view every interval
-        g.fillRect(0,0, screen_width, screen_height);
+
+        int bkMoving_speed = 1;
+        bkX -= bkMoving_speed;
+            bkX2 -= bkMoving_speed;
+        Rectangle backPanel = new Rectangle(bkX, 0, screen_width * 2, screen_height);
+        Rectangle backPanel2 = new Rectangle(bkX2, 0, screen_width * 2, screen_height);
+
+            g.drawImage(bk, bkX,0,  screen_width*2,  screen_height, null);
+            g.drawImage(bk2, bkX2,0,  screen_width*2,  screen_height, null);
+            if(backPanel.x <= -(screen_width*2))  {
+               bkX = screen_width;
+            }
+
+            if(backPanel2.x <= -(screen_width*2)) {
+                bkX2 = screen_width;
+            }
+
+
 
         // Increasing thier speed
-        moving_x -= speedX;
+        // Poles
+        int moving_speedX = 10;
+        this.moving_x_of_poles -= moving_speedX;
 
+        gravitySpeed += gravity;
 
-        draw((Graphics2D) g);
+        double moving_speedY = 0.5d;
+        this.playerY += (int) moving_speedY + (int) gravitySpeed;
 
+        drawPoles((Graphics2D) g);
+
+        drawMessege(g, ""+score, Color.white, screen_width/2, 40);
+
+        // Winning Circle
         if(doesWon) {
             win((Graphics2D) g);
         }
 
+
     }
 
-    private void draw(Graphics2D g) {
 
+    private void drawPoles(Graphics2D g) {
+        playerY += gravity;
+        drawBird(g);
         // Upside Poles
-        for (int h = 0; h < Pole.heights.length; h++) {
+        for (int h = 0; h < Pole.elements.size(); h++) {
 
 
-            int height =  Pole.heights[h];
-            g.setColor(Color.cyan);
+            int height =  Pole.elements.get(h);
+            g.setColor(Color.green);
 
 
             // Upside fake Poles
-            upSidePoles = new Rectangle(h * (screen_width/3) + moving_x,  0 ,pole_width, height);
-            g.drawRect(h * (screen_width/3) + moving_x, 0, pole_width, height);
+
+            // For intersection between player position
+            Rectangle upSidePoles = new Rectangle(h * random_position_for_placing_upside + moving_x_of_poles, 0, pole_width, height);
+
+
+            //Real poles
+            g.fill(upSidePoles);
+
 
             // checking if last pole has been gone out of view
-            if (upSidePoles.x < -(screen_width/3) * dynamic_poles) {
+            if (upSidePoles.x < -random_position_for_placing_upside * number_of_poles) {
                 doesWon = true;
                 timer.stop();
-                System.out.println("STOPPED BY UPSIDE");
-
             }
 
-        }
 
 
-        // Downside Poles
-        for (int h = 0; h < Pole.heights.length; h++) {
-            int height = Pole.heights[h];
-            g.setColor(Color.cyan);
+            // downSide  Poles
+            Rectangle downSidePoles = new Rectangle(h * random_position_for_placing_downside + moving_x_of_poles, screen_height - height, pole_width, height);
 
-            // downSide fake Poles
-            downSidePoles = new Rectangle(h * random_position_upside + moving_x, screen_height - height, pole_width, height);
-            g.drawRect(h * random_position_upside + moving_x, screen_height - height, pole_width, height);
+           // Real poles
+            g.fill(downSidePoles);
 
-            if (downSidePoles.x < -random_position_upside * dynamic_poles) {
+            // Pole X if gone then win is true
+            if (downSidePoles.x < -random_position_for_placing_downside * number_of_poles) {
                 doesWon = true;
                 timer.stop();
-                System.out.println("STOPPED BY DOWNSIDE");
+            }
 
+            // Bird collision with poles
+            if(upSidePoles.intersects(bird) || downSidePoles.intersects(bird)){
+                timer.stop();
             }
         }
-
-
-
-
-
-
-
-
-
 
     }
 
 
 
+
+
+    private void drawBird(Graphics2D g)
+    {
+        try {
+               BufferedImage bird_image = ImageIO.read(new File("C:\\Users\\Honey Singh\\IdeaProjects\\Java_Course_Udamy\\src\\Flappy_Bird\\bird.png"));
+            // Player
+            int playerX = (screen_width / 2) - 20;
+            int player_Width = 25;
+            int player_Height = 20;
+            // Game
+               bird = new Rectangle(playerX, playerY, player_Width, player_Height);
+               g.drawImage(bird_image, playerX, playerY, player_Width, player_Height, null);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     public void actionPerformed(ActionEvent e) {
         // Start framing
         timer.start();
+
+
 
         // Redraw every milliseconds
         repaint();
 
     }
 
-    private void drawMessege(Graphics g, String messege,int size, Color col, int x, int y){
+    private static void accelerate( double val ) {
+        gravity = val;
+    }
+
+    private void drawMessege(Graphics g, String messege, Color col, int x, int y){
         g.setColor(col);
-        g.setFont(new Font("Times new Roman", Font.BOLD, size));
+        g.setFont(new Font("Times new Roman", Font.BOLD, 32));
         g.drawString(messege, x, y);
     }
 
-    private void win(Graphics2D g){
-        if(doesWon){
-            drawMessege(g, "Level " + level + " has been Passed", 32, Color.green, 200, 200);
-            level+=1;
-            timer.stop();
-        }
+
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        accelerate(-0.2);
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        accelerate(0.2);
     }
 
 
 
+    @Override
+    public void mouseClicked(MouseEvent e) {
+
+
+    }
+
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        //System.out.println("ENTERED");
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        //System.out.println("EXIT");
+    }
+
+
+
+    private void win(Graphics2D g) {
+        if (doesWon) {
+            drawMessege(g, "Level " + level + " has been Passed", Color.green, 200, 200);
+            level += 1;
+            timer.stop();
+        }
+    }
 }
 
-
-                    /*
+   /*
                     *
                     * // if the scene has been gone start the moving_x all over again
                         In case if we want to respawn the poles in the same level
@@ -201,3 +289,14 @@ public class Game extends JPanel implements variables , ActionListener{
             }
                     *
                     * */
+
+    //addKeyboardListener(this, KeyEvent.VK_SPACE, true,"UP", (event) ->{
+//            gravity = gravity-2f;
+//
+//        });
+//
+//
+//
+//        addKeyboardListener(this, KeyEvent.VK_SPACE, false,"DOWN", (event) ->{
+//            gravity = gravity+2f;
+//        });

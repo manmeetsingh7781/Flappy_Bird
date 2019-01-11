@@ -28,7 +28,7 @@ public class Main  implements variables {
         frame.add(game);
 
         // Setting image Icon
-        ImageIcon img_icon = new ImageIcon("src\\bricks-game.jpg");
+        ImageIcon img_icon = new ImageIcon("src\\Flappy_Bird\\logo.png");
 
         // Getting the image preview from the ImageIcon and setting it up
         frame.setIconImage(img_icon.getImage());
